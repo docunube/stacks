@@ -35,4 +35,4 @@ services:
 networks:
   default:
     name: vaultwarden_net
-# Prueba de modificación
+    

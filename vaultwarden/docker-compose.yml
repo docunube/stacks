@@ -35,5 +35,8 @@ services:
     #     limits:
     #       cpus: '1.0'
     #       memory: 512M
+<<<<<<< HEAD
 
     
+=======
+>>>>>>> 2fd63d4 (Vaultwarden ajustes compose y .env.example)

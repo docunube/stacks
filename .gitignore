@@ -1,0 +1,13 @@
+# Nunca subas .env reales ni datos
+**/.env
+**/.env.*
+**/data/
+**/media/
+**/export/
+**/consume/
+**/pgdata/
+**/redisdata/
+**/logs/
+**/customFiles/
+**/pipeline/
+**/StirlingPDF/

@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+stirling-pdf:
+image: ${STIRLING_IMAGE}
+container_name: stirling-pdf
+restart: unless-stopped
+ports:
+- "127.0.0.1:${STIRLING_HTTP_PORT}:8080"
+environment:
+# UI/idiomas de interfaz; OCR se nutre de tessdata montado
+LANGS: ${STIRLING_UI_LANGS}
+volumes:
+- ${STIRLING_BASE}/trainingData:/usr/share/tessdata
+- ${STIRLING_BASE}/extraConfigs:/configs
+- ${STIRLING_BASE}/customFiles:/customFiles
+- ${STIRLING_BASE}/logs:/logs
+- ${STIRLING_BASE}/pipeline:/pipeline
+
+
+networks:
+default:
+name: stirling_net

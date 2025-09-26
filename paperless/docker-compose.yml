@@ -1,0 +1,85 @@
+version: "3.9"
+
+
+services:
+broker:
+image: ${REDIS_IMAGE}
+container_name: paperless-redis
+restart: unless-stopped
+volumes:
+- ${PAPERLESS_BASE}/redisdata:/data
+
+
+db:
+image: ${POSTGRES_IMAGE}
+container_name: paperless-postgres
+restart: unless-stopped
+environment:
+POSTGRES_DB: ${PAPERLESS_DB_NAME}
+POSTGRES_USER: ${PAPERLESS_DB_USER}
+POSTGRES_PASSWORD: ${PAPERLESS_DB_PASSWORD}
+volumes:
+- ${PAPERLESS_BASE}/pgdata:/var/lib/postgresql/data
+
+
+gotenberg:
+image: ${GOTENBERG_IMAGE}
+container_name: paperless-gotenberg
+restart: unless-stopped
+command:
+- "gotenberg"
+- "--chromium-disable-javascript=true"
+- "--chromium-allow-file-access-from-files=true"
+
+
+tika:
+image: ${TIKA_IMAGE}
+container_name: paperless-tika
+restart: unless-stopped
+
+
+webserver:
+image: ${PAPERLESS_IMAGE}
+container_name: paperless-ngx
+depends_on:
+- broker
+- db
+- gotenberg
+- tika
+restart: unless-stopped
+# Publicamos sólo en loopback; Reverse Proxy de DSM hará el front HTTPS
+ports:
+- "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
+environment:
+# Redis / DB
+PAPERLESS_REDIS: redis://broker:6379
+PAPERLESS_DBHOST: db
+PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME}
+PAPERLESS_DBUSER: ${PAPERLESS_DB_USER}
+PAPERLESS_DBPASS: ${PAPERLESS_DB_PASSWORD}
+# URL y seguridad
+PAPERLESS_URL: ${PAPERLESS_URL}
+PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS}
+PAPERLESS_CSRF_TRUSTED_ORIGINS: ${PAPERLESS_CSRF_TRUSTED_ORIGINS}
+PAPERLESS_TIME_ZONE: ${TZ}
+# OCR e idiomas (español + inglés)
+PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
+PAPERLESS_OCR_LANGUAGES: ${PAPERLESS_OCR_LANGUAGES}
+# Tika/Gotenberg
+PAPERLESS_TIKA_ENABLED: "1"
+PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+# Admin inicial opcional (puedes comentar tras el primer arranque)
+PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
+PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+PAPERLESS_ADMIN_MAIL: ${PAPERLESS_ADMIN_MAIL}
+volumes:
+- ${PAPERLESS_BASE}/data:/usr/src/paperless/data
+- ${PAPERLESS_BASE}/media:/usr/src/paperless/media
+- ${PAPERLESS_BASE}/export:/usr/src/paperless/export
+- ${PAPERLESS_BASE}/consume:/usr/src/paperless/consume
+
+
+networks:
+default:
+name: paperless_net

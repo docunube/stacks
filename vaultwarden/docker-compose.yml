@@ -1,38 +1,39 @@
-version: "3.9"
+version: "3.8"
 
 services:
   vaultwarden:
     image: ${VAULTWARDEN_IMAGE}
     container_name: vaultwarden
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:${VAULTWARDEN_HTTP_PORT}:80"
     environment:
       TZ: ${TZ}
-      DOMAIN: ${VAULTWARDEN_DOMAIN}
-      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
-      # Opcional: cerrar registros desde ENV (también puedes hacerlo en /admin)
-      SIGNUPS_ALLOWED: "false"
-
-      # Límites y nivel de log
-      RATE_LIMITS: ${RATE_LIMITS}
-      LOG_LEVEL: ${LOG_LEVEL}
-
-      # SMTP (opcional)
+      DOMAIN: ${DOMAIN}
+      SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED}
+      INVITATIONS_ALLOWED: ${INVITATIONS_ALLOWED}
+      WEBSOCKET_ENABLED: ${WEBSOCKET_ENABLED}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_FROM: ${SMTP_FROM}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_SECURITY: ${SMTP_SECURITY}
       SMTP_USERNAME: ${SMTP_USERNAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-
-      # Si necesitas adjuntos grandes:
-      # ROCKET_LIMITS: {forms="128 MiB", data-form="128 MiB"}
-
+      ROCKET_LIMITS: ${ROCKET_LIMITS}
+      # Recomendable en producción:
+      LOG_FILE: /data/vaultwarden.log
+      USE_SYSLOG: false
+    ports:
+      # Exponemos SOLO en loopback; DSM reverse proxy hará el front en 443
+      - "127.0.0.1:${HOST_HTTP_PORT}:80"
     volumes:
-      - ${VAULTWARDEN_BASE}/data:/data
+      - "${VAULTWARDEN_DATA}:/data"
+    security_opt:
+      - no-new-privileges:true
+    # Opcional: limitar recursos
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M
 
-networks:
-  default:
-    name: vaultwarden_net
     
